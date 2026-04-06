@@ -8,12 +8,12 @@ const Header = () => (
         to="/"
         className="text-[1.2rem] md:text-[1.35rem] tracking-wide flex gap-1.5 items-center"
       >
-        <span className="font-light">FARHAN</span>
+        <span className="font-light">FARHAN'S</span>
         <span className="font-semibold">PORTFOLIO</span>
       </Link>
       <a
         href="mailto:farhan.finance@studentmail.com"
-        className="hidden md:inline-flex rounded-full px-5 py-2 text-[0.75rem] font-bold tracking-[0.03em] text-[#111827] bg-linear-to-br from-[#d9bb7a] to-[#b9914c] shadow-[0_8px_22px_rgba(185,145,76,0.34)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(185,145,76,0.48)]"
+        className="hidden md:inline-flex rounded-full px-5 py-2 text-[0.75rem] font-bold tracking-[0.03em] text-[#111827] bg-white border border-black hover:bg-black hover:border-white hover:text-white transition-all duration-300"
       >
         Hire Me
       </a>

@@ -2,7 +2,7 @@ import React from "react";
 
 const socials = [
   { name: "LINKEDIN", url: "https://linkedin.com" },
-  { name: "GITHUB", url: "https://github.com" },
+  { name: "FACEBOOK", url: "https://facebook.com" },
   { name: "EMAIL", url: "mailto:farhan.finance@studentmail.com" },
 ];
 

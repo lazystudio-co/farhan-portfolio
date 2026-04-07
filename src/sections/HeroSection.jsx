@@ -6,7 +6,6 @@ import BioCard from "../components/BioCard";
 import PortraitCard from "../components/PortraitCard";
 import ContactCard from "../components/ContactCard";
 import ProjectsCard from "../components/ProjectsCard";
-import SocialLinks from "../components/SocialLinks";
 import Footer from "../components/Footer";
 
 const HeroSection = () => (
@@ -27,7 +26,6 @@ const HeroSection = () => (
         {/* --- COLUMN 3 --- */}
         <div className="flex flex-col gap-4">
           <ProjectsCard />
-          <SocialLinks />
         </div>
         <div className="md:col-span-3">
           <Footer />

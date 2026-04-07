@@ -29,9 +29,9 @@ const HeroSection = () => (
           <ProjectsCard />
           <SocialLinks />
         </div>
-      </div>
-      <div className="mt-5 shrink-0">
-        <Footer />
+        <div className="md:col-span-3">
+          <Footer />
+        </div>
       </div>
     </div>
   </div>

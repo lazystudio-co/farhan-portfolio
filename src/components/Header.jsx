@@ -1,16 +1,15 @@
 import React from "react";
-import { Link } from "react-router-dom";
 
 const Header = () => (
   <header className="rounded-3xl px-5 md:px-8 py-5 mb-4 bg-[#f4f7fb] border border-white/85 shadow-[0_20px_60px_rgba(4,13,26,0.12)]">
     <div className="flex justify-between items-center gap-4">
-      <Link
-        to="/"
+      <a
+        href="/"
         className="text-[1.2rem] md:text-[1.35rem] tracking-wide flex gap-1.5 items-center"
       >
         <span className="font-light">FARHAN'S</span>
         <span className="font-semibold">PORTFOLIO</span>
-      </Link>
+      </a>
       <a
         href="mailto:farhan.finance@studentmail.com"
         className="hidden md:inline-flex rounded-full px-5 py-2 text-[0.75rem] font-bold tracking-[0.03em] text-[#111827] bg-white border border-black hover:bg-black hover:border-white hover:text-white transition-all duration-300"

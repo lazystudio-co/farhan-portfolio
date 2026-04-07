@@ -1,4 +1,10 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { gsap } from "gsap";
 
 const GlassModalDemo = ({ isOpen, onClose }) => {
@@ -48,6 +54,26 @@ const GlassModalDemo = ({ isOpen, onClose }) => {
   }, [onClose]);
 
   const shouldRender = isOpen || isAnimatingOut;
+
+  useEffect(() => {
+    if (!shouldRender) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyTouchAction = document.body.style.touchAction;
+    const shell = document.querySelector(".portfolio-shell");
+    const previousShellOverflowY = shell ? shell.style.overflowY : "";
+
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    if (shell) shell.style.overflowY = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
+      if (shell) shell.style.overflowY = previousShellOverflowY;
+    };
+  }, [shouldRender]);
+
   if (!shouldRender) return null;
 
   return (

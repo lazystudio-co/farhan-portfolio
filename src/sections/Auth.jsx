@@ -1,50 +1,76 @@
-import React from "react";
+import React, { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 
 const Auth = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleSignIn = async (event) => {
+    event.preventDefault();
+    setError(null);
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Auth error:", err.message);
+      if (
+        err.code === "auth/user-not-found" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/invalid-credential"
+      ) {
+        setError("Invalid email or password.");
+      } else {
+        setError("Sign-in failed. Please try again.");
+      }
+    }
+  };
+
   return (
-    <section>
-      {/* Glassmorphic Card Container */}
-      <div className="w-[500px] h-[200px] p-6 bg-white/30 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50">
+    <section className="flex items-center justify-center min-h-screen">
+      <div className="w-125 min-h-50 p-8 bg-white/30 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50">
         <h1 className="text-2xl font-semibold text-center text-gray-800 mb-6">
-          Admin Panel
+          Admin Login
         </h1>
 
-        {/* Continue with Google Button */}
-        <button
-          type="button"
-          className="flex items-center justify-center w-full px-4 py-2.5 space-x-3 text-sm font-medium text-gray-700 bg-white/70 border border-white/50 rounded-lg shadow-sm hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ease-in-out"
-        >
-          {/* Google SVG Logo */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 48 48"
-            className="w-5 h-5"
-          >
-            <path
-              fill="#FFC107"
-              d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-            />
-            <path
-              fill="#FF3D00"
-              d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-            />
-            <path
-              fill="#4CAF50"
-              d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-            />
-            <path
-              fill="#1976D2"
-              d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-            />
-          </svg>
-          <span>Continue with Google</span>
-        </button>
+        {error && (
+          <div className="mb-4 text-sm text-center text-red-600 bg-red-100/50 backdrop-blur-sm p-3 rounded-lg border border-red-200">
+            {error}
+          </div>
+        )}
 
-        {/* Optional "Or" Divider for email login below */}
-        <div className="flex items-center w-full mt-6 mb-4">
-          <div className="flex-grow border-t border-gray-400/30"></div>
-          <div className="flex-grow border-t border-gray-400/30"></div>
-        </div>
+        <form onSubmit={handleSignIn} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+          />
+
+          <button
+            type="submit"
+            className="w-full px-4 py-3 text-sm font-bold text-indigo-900 bg-white/90 hover:bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out uppercase tracking-wider cursor-pointer"
+          >
+            Sign In
+          </button>
+        </form>
       </div>
     </section>
   );

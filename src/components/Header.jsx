@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import GlassModalDemo from "./GlassModalDemo";
+import GlassCVModal from "./GlassCVModal";
 
 const Header = () => {
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isCvOpen, setIsCvOpen] = useState(false);
 
   return (
     <>
@@ -17,7 +19,7 @@ const Header = () => {
           </a>
           <button
             type="button"
-            onClick={() => setIsContactOpen(true)}
+            onClick={() => setIsCvOpen(true)}
             className="hidden cursor-pointer md:inline-flex rounded-full px-5 py-2 text-[0.75rem] font-bold tracking-[0.03em] text-[#111827] bg-white border border-black hover:bg-black hover:border-white hover:text-white transition-all duration-300"
           >
             Curriculum Vitae
@@ -44,6 +46,7 @@ const Header = () => {
         isOpen={isContactOpen}
         onClose={() => setIsContactOpen(false)}
       />
+      <GlassCVModal isOpen={isCvOpen} onClose={() => setIsCvOpen(false)} />
     </>
   );
 };

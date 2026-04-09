@@ -1,6 +1,6 @@
 import React from "react";
 
-const ContactCard = ({ onOpenCv }) => (
+const ContactCard = ({ onOpenCv, contact }) => (
   <button
     type="button"
     onClick={onOpenCv}
@@ -9,9 +9,9 @@ const ContactCard = ({ onOpenCv }) => (
   >
     <div className="flex items-start justify-between">
       <span className="text-[11px] md:text-[12px] font-semibold tracking-[0.14em] leading-tight text-[#3f5068] uppercase">
-        Open to
+        {contact?.availabilityLabel}
         <br />
-        Analyst Internships
+        {contact?.availabilityValue}
       </span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -31,11 +31,9 @@ const ContactCard = ({ onOpenCv }) => (
     </div>
     <div>
       <h2 className="text-[2.6rem] md:text-[3.2rem] font-medium leading-none tracking-tight text-[#102036]">
-        Let&apos;s connect
+        {contact?.heading}
       </h2>
-      <p className="mt-3 text-sm text-[#445772]">
-        Internship applications, case interviews, and finance collaborations.
-      </p>
+      <p className="mt-3 text-sm text-[#445772]">{contact?.description}</p>
     </div>
   </button>
 );

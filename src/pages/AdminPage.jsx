@@ -1,29 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { onValue, ref, set } from "firebase/database";
+import { db } from "../firebase";
+import { DEFAULT_PORTFOLIO_CONTENT } from "../data/defaultPortfolioContent";
 
-const INITIAL_FORM = {
-  profile: {
-    profileUrl: "https://yourportfolio.com",
-    targetRole: "Investment Analyst Intern",
-  },
-  aboutSection: {
-    aboutMe:
-      "Finance undergraduate at North South University focused on capital markets. I am building a foundation in quantitative analysis to bridge the gap between academic theory and high-impact physical assets.",
-    cgpa: "-- / --",
-    education: "Currently pursuing BBA at North South University",
-    sectorFocus: "Corporate Finance and Fintech",
-  },
-  projects: [
-    {
-      id: 1,
-      title: "Banking Sector Comparative Dashboard",
-      description: "Compared listed banks on ROE, NIM, and capital adequacy.",
+const CONTENT_PATH = "portfolioContent";
+
+const mergeContent = (remoteContent) => {
+  const content = remoteContent || {};
+
+  return {
+    ...DEFAULT_PORTFOLIO_CONTENT,
+    ...content,
+    hero: {
+      ...DEFAULT_PORTFOLIO_CONTENT.hero,
+      ...content.hero,
+      tags: Array.isArray(content.hero?.tags)
+        ? content.hero.tags
+        : DEFAULT_PORTFOLIO_CONTENT.hero.tags,
     },
-    {
-      id: 2,
-      title: "IPO Valuation Note",
-      description: "Built DCF and trading comps to estimate fair value range.",
+    profile: {
+      ...DEFAULT_PORTFOLIO_CONTENT.profile,
+      ...content.profile,
     },
-  ],
+    aboutSection: {
+      ...DEFAULT_PORTFOLIO_CONTENT.aboutSection,
+      ...content.aboutSection,
+    },
+    contact: {
+      ...DEFAULT_PORTFOLIO_CONTENT.contact,
+      ...content.contact,
+    },
+    portrait: {
+      ...DEFAULT_PORTFOLIO_CONTENT.portrait,
+      ...content.portrait,
+    },
+    footer: {
+      ...DEFAULT_PORTFOLIO_CONTENT.footer,
+      ...content.footer,
+    },
+    projects: Array.isArray(content.projects)
+      ? content.projects.map((project, index) => ({
+          id: project.id || Date.now() + index,
+          title: project.title || "",
+          description: project.description || "",
+          imageUrl: project.imageUrl || "",
+        }))
+      : DEFAULT_PORTFOLIO_CONTENT.projects,
+  };
 };
 
 const InputField = ({ label, value, onChange, placeholder, type = "text" }) => (
@@ -42,13 +65,72 @@ const InputField = ({ label, value, onChange, placeholder, type = "text" }) => (
 );
 
 const AdminPage = () => {
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [form, setForm] = useState(DEFAULT_PORTFOLIO_CONTENT);
   const [saveState, setSaveState] = useState("idle");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const contentRef = ref(db, CONTENT_PATH);
+
+    const unsubscribe = onValue(
+      contentRef,
+      (snapshot) => {
+        setForm(mergeContent(snapshot.val()));
+        setIsLoading(false);
+      },
+      () => {
+        setForm(DEFAULT_PORTFOLIO_CONTENT);
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  const heroTagsValue = useMemo(
+    () => form.hero.tags.join(", "),
+    [form.hero.tags],
+  );
+
+  const updateHero = (field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      hero: { ...prev.hero, [field]: value },
+    }));
+  };
 
   const updateProfile = (field, value) => {
     setForm((prev) => ({
       ...prev,
       profile: { ...prev.profile, [field]: value },
+    }));
+  };
+
+  const updateAbout = (field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      aboutSection: { ...prev.aboutSection, [field]: value },
+    }));
+  };
+
+  const updateContact = (field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      contact: { ...prev.contact, [field]: value },
+    }));
+  };
+
+  const updatePortrait = (value) => {
+    setForm((prev) => ({
+      ...prev,
+      portrait: { ...prev.portrait, imageUrl: value },
+    }));
+  };
+
+  const updateFooter = (value) => {
+    setForm((prev) => ({
+      ...prev,
+      footer: { ...prev.footer, brandName: value },
     }));
   };
 
@@ -70,6 +152,7 @@ const AdminPage = () => {
           id: Date.now(),
           title: "",
           description: "",
+          imageUrl: "",
         },
       ],
     }));
@@ -82,13 +165,28 @@ const AdminPage = () => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaveState("saving");
 
-    setTimeout(() => {
+    try {
+      await set(ref(db, CONTENT_PATH), form);
       setSaveState("saved");
-    }, 900);
+    } catch {
+      setSaveState("error");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="portfolio-backdrop">
+        <div className="portfolio-shell flex items-center justify-center p-6">
+          <div className="rounded-2xl border border-white/50 bg-white/80 px-6 py-4 text-[#12233a]">
+            Loading dashboard content...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="portfolio-backdrop">
@@ -104,8 +202,8 @@ const AdminPage = () => {
                   Admin Dashboard
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm text-[#415471]">
-                  Update your portfolio content, tune project highlights, and
-                  keep your public profile current from one place.
+                  Manage all main-page content and sync it to Firebase in real
+                  time.
                 </p>
               </div>
 
@@ -117,6 +215,16 @@ const AdminPage = () => {
                 >
                   {saveState === "saving" ? "Saving..." : "Save Changes"}
                 </button>
+                {saveState === "saved" ? (
+                  <span className="text-xs font-semibold text-[#0f766e]">
+                    Saved to Firebase
+                  </span>
+                ) : null}
+                {saveState === "error" ? (
+                  <span className="text-xs font-semibold text-[#b91c1c]">
+                    Save failed. Check Firebase rules.
+                  </span>
+                ) : null}
               </div>
             </div>
           </header>
@@ -125,9 +233,55 @@ const AdminPage = () => {
             <div className="space-y-5">
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
                 <h2 className="text-lg font-semibold text-[#12233a]">
+                  Hero Content
+                </h2>
+                <div className="mt-4 space-y-4">
+                  <InputField
+                    label="Hero Title Start"
+                    value={form.hero.titleStart}
+                    onChange={(event) =>
+                      updateHero("titleStart", event.target.value)
+                    }
+                    placeholder="Building"
+                  />
+                  <InputField
+                    label="Hero Title Emphasis"
+                    value={form.hero.titleEmphasis}
+                    onChange={(event) =>
+                      updateHero("titleEmphasis", event.target.value)
+                    }
+                    placeholder="Market Intelligence"
+                  />
+                  <InputField
+                    label="Hero Title End"
+                    value={form.hero.titleEnd}
+                    onChange={(event) =>
+                      updateHero("titleEnd", event.target.value)
+                    }
+                    placeholder="with Valuation Discipline"
+                  />
+                  <InputField
+                    label="Hero Tags (comma separated)"
+                    value={heroTagsValue}
+                    onChange={(event) =>
+                      updateHero(
+                        "tags",
+                        event.target.value
+                          .split(",")
+                          .map((tag) => tag.trim())
+                          .filter(Boolean),
+                      )
+                    }
+                    placeholder="Equity Research, Corporate Finance, Fintech"
+                  />
+                </div>
+              </section>
+
+              <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
+                <h2 className="text-lg font-semibold text-[#12233a]">
                   Profile Overview
                 </h2>
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="mt-4 space-y-4">
                   <InputField
                     label="Profile URL"
                     value={form.profile.profileUrl}
@@ -136,9 +290,6 @@ const AdminPage = () => {
                     }
                     placeholder="https://yourportfolio.com"
                   />
-                </div>
-
-                <div className="mt-4 space-y-4">
                   <InputField
                     label="Target Role"
                     value={form.profile.targetRole}
@@ -152,12 +303,8 @@ const AdminPage = () => {
 
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
                 <h2 className="text-lg font-semibold text-[#12233a]">
-                  About Section Content
+                  About Content
                 </h2>
-                <p className="mt-1 text-sm text-[#50627d]">
-                  Configure exactly what appears in your public About section.
-                </p>
-
                 <div className="mt-4 space-y-4">
                   <label className="flex flex-col gap-2">
                     <span className="text-[11px] uppercase tracking-[0.2em] text-[#7a879b] font-semibold">
@@ -166,31 +313,18 @@ const AdminPage = () => {
                     <textarea
                       value={form.aboutSection.aboutMe}
                       onChange={(event) =>
-                        setForm((prev) => ({
-                          ...prev,
-                          aboutSection: {
-                            ...prev.aboutSection,
-                            aboutMe: event.target.value,
-                          },
-                        }))
+                        updateAbout("aboutMe", event.target.value)
                       }
                       rows={5}
                       className="w-full rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
                     />
                   </label>
-
                   <div className="grid gap-4 md:grid-cols-2">
                     <InputField
                       label="CGPA"
                       value={form.aboutSection.cgpa}
                       onChange={(event) =>
-                        setForm((prev) => ({
-                          ...prev,
-                          aboutSection: {
-                            ...prev.aboutSection,
-                            cgpa: event.target.value,
-                          },
-                        }))
+                        updateAbout("cgpa", event.target.value)
                       }
                       placeholder="-- / --"
                     />
@@ -198,29 +332,16 @@ const AdminPage = () => {
                       label="Sector Focus"
                       value={form.aboutSection.sectorFocus}
                       onChange={(event) =>
-                        setForm((prev) => ({
-                          ...prev,
-                          aboutSection: {
-                            ...prev.aboutSection,
-                            sectorFocus: event.target.value,
-                          },
-                        }))
+                        updateAbout("sectorFocus", event.target.value)
                       }
                       placeholder="Corporate Finance and Fintech"
                     />
                   </div>
-
                   <InputField
                     label="Education"
                     value={form.aboutSection.education}
                     onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        aboutSection: {
-                          ...prev.aboutSection,
-                          education: event.target.value,
-                        },
-                      }))
+                      updateAbout("education", event.target.value)
                     }
                     placeholder="Currently pursuing BBA at North South University"
                   />
@@ -230,10 +351,55 @@ const AdminPage = () => {
 
             <aside className="space-y-5">
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-[#12233a]">
-                    Projects Manager
-                  </h2>
+                <h2 className="text-lg font-semibold text-[#12233a]">
+                  Let&apos;s Connect Card
+                </h2>
+                <div className="mt-4 space-y-4">
+                  <InputField
+                    label="Availability Label"
+                    value={form.contact.availabilityLabel}
+                    onChange={(event) =>
+                      updateContact("availabilityLabel", event.target.value)
+                    }
+                    placeholder="Open to"
+                  />
+                  <InputField
+                    label="Availability Value"
+                    value={form.contact.availabilityValue}
+                    onChange={(event) =>
+                      updateContact("availabilityValue", event.target.value)
+                    }
+                    placeholder="Analyst Internships"
+                  />
+                  <InputField
+                    label="Heading"
+                    value={form.contact.heading}
+                    onChange={(event) =>
+                      updateContact("heading", event.target.value)
+                    }
+                    placeholder="Let's connect"
+                  />
+                  <label className="flex flex-col gap-2">
+                    <span className="text-[11px] uppercase tracking-[0.2em] text-[#7a879b] font-semibold">
+                      Description
+                    </span>
+                    <textarea
+                      value={form.contact.description}
+                      onChange={(event) =>
+                        updateContact("description", event.target.value)
+                      }
+                      rows={3}
+                      className="rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
+                <h2 className="text-lg font-semibold text-[#12233a]">
+                  Projects Manager
+                </h2>
+                <div className="mt-3 flex justify-end">
                   <button
                     type="button"
                     onClick={addProject}
@@ -275,7 +441,6 @@ const AdminPage = () => {
                           }
                           placeholder="Project title"
                         />
-
                         <label className="flex flex-col gap-2">
                           <span className="text-[11px] uppercase tracking-[0.2em] text-[#7a879b] font-semibold">
                             Description
@@ -293,9 +458,41 @@ const AdminPage = () => {
                             className="rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
                           />
                         </label>
+                        <InputField
+                          label="Image URL (optional)"
+                          value={project.imageUrl}
+                          onChange={(event) =>
+                            updateProject(
+                              project.id,
+                              "imageUrl",
+                              event.target.value,
+                            )
+                          }
+                          placeholder="https://..."
+                        />
                       </div>
                     </article>
                   ))}
+                </div>
+              </section>
+
+              <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
+                <h2 className="text-lg font-semibold text-[#12233a]">
+                  Portrait & Footer
+                </h2>
+                <div className="mt-4 space-y-4">
+                  <InputField
+                    label="Portrait Image URL"
+                    value={form.portrait.imageUrl}
+                    onChange={(event) => updatePortrait(event.target.value)}
+                    placeholder="https://..."
+                  />
+                  <InputField
+                    label="Footer Brand Name"
+                    value={form.footer.brandName}
+                    onChange={(event) => updateFooter(event.target.value)}
+                    placeholder="LazyStudio"
+                  />
                 </div>
               </section>
             </aside>

@@ -8,9 +8,11 @@ import ContactCard from "../components/ContactCard";
 import ProjectsCard from "../components/ProjectsCard";
 import Footer from "../components/Footer";
 import GlassCVModal from "../components/GlassCVModal";
+import { usePortfolioContent } from "../hooks/usePortfolioContent";
 
 const HeroSection = () => {
   const [isCvOpen, setIsCvOpen] = useState(false);
+  const { content } = usePortfolioContent();
 
   return (
     <div className="portfolio-backdrop p-2 md:p-4 font-['Manrope'] text-[#1a1a1a] selection:bg-[#c2d0dd] selection:text-white bg-[radial-gradient(circle_at_10%_0%,rgba(242,246,251,0.62),transparent_38%),radial-gradient(circle_at_86%_8%,rgba(223,229,236,0.58),transparent_34%)]">
@@ -19,20 +21,26 @@ const HeroSection = () => {
         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-5 md:min-h-215">
           {/* --- COLUMN 1 --- */}
           <div className="flex flex-col gap-4">
-            <HeroCard />
-            <BioCard />
+            <HeroCard hero={content.hero} />
+            <BioCard aboutSection={content.aboutSection} />
           </div>
           {/* --- COLUMN 2 --- */}
           <div className="flex flex-col gap-4">
-            <PortraitCard />
-            <ContactCard onOpenCv={() => setIsCvOpen(true)} />
+            <PortraitCard
+              portrait={content.portrait}
+              profile={content.profile}
+            />
+            <ContactCard
+              onOpenCv={() => setIsCvOpen(true)}
+              contact={content.contact}
+            />
           </div>
           {/* --- COLUMN 3 --- */}
           <div className="flex flex-col gap-4">
-            <ProjectsCard />
+            <ProjectsCard projects={content.projects} />
           </div>
           <div className="md:col-span-3">
-            <Footer />
+            <Footer footer={content.footer} />
           </div>
         </div>
       </div>

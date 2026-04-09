@@ -2,9 +2,8 @@ import React from "react";
 
 const projects = [
   {
-    name: "Banking Sector Coverage",
-    img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
-    desc: "Built a 3-statement screening dashboard to compare 12 listed banks on profitability and capital adequacy.",
+    name: "Finance Sector Coverage",
+    img: "https://images.vexels.com/media/users/3/3939/raw/cf9fa275562d62abb6427e1e537a36be-word-pack-finance.jpg",
   },
   {
     name: "Consumer IPO Brief",
@@ -26,32 +25,17 @@ const ProjectsCard = () => (
     className="max-md:min-h-176 md:min-h-215 md:flex-[8.4_1_0%] rounded-3xl p-8 md:p-9 flex flex-col bg-[#eef2f7] border border-white/85 shadow-[0_20px_60px_rgba(4,13,26,0.12)] scroll-mt-6"
   >
     {/* Active Project */}
-    <div className="cursor-pointer group">
+    <div className="group">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-medium text-[#12223a]">
           {projects[0].name}
         </h2>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="transition-transform transform group-hover:translate-x-1 group-hover:-translate-y-1"
-        >
-          <line x1="7" y1="17" x2="17" y2="7"></line>
-          <polyline points="7 7 17 7 17 17"></polyline>
-        </svg>
       </div>
-      <div className="w-full mb-8 overflow-hidden h-60 lg:h-72 rounded-xl">
+      <div>
         <img
           src={projects[0].img}
           alt="Finance project cover"
-          className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105 mix-blend-luminosity opacity-90"
+          className="object-cover w-full h-[100px] rounded-2xl shadow-md border border-gray-300 "
         />
       </div>
       <p className="text-[13px] text-[#3f5168] leading-relaxed">

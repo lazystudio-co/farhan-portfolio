@@ -14,7 +14,7 @@ const HeroCard = () => (
       <br />
       with Valuation Discipline
     </h1>
-    <div className="flex flex-wrap gap-2 mt-8 z-10">
+    <div className="flex flex-wrap gap-2 mt-2 z-10">
       <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[0.74rem] tracking-[0.08em] text-[#34475f] bg-[#e4ecf4] border border-[rgba(94,122,152,0.25)]">
         Equity Research
       </span>

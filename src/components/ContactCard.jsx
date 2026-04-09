@@ -1,9 +1,10 @@
 import React from "react";
 
-const ContactCard = () => (
-  <a
+const ContactCard = ({ onOpenCv }) => (
+  <button
+    type="button"
+    onClick={onOpenCv}
     id="insights"
-    href="mailto:farhan.finance@studentmail.com"
     className="max-md:min-h-84 md:min-h-90 md:flex-[4.3_1_0%] bg-[#c2d0dd] rounded-3xl p-8 md:p-9 relative flex flex-col justify-between group cursor-pointer hover:bg-[#b0c0cf] transition-colors border border-white/85 shadow-[0_20px_60px_rgba(4,13,26,0.12)] scroll-mt-6"
   >
     <div className="flex items-start justify-between">
@@ -36,7 +37,7 @@ const ContactCard = () => (
         Internship applications, case interviews, and finance collaborations.
       </p>
     </div>
-  </a>
+  </button>
 );
 
 export default ContactCard;

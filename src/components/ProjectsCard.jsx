@@ -35,7 +35,7 @@ const ProjectsCard = () => (
         <img
           src={projects[0].img}
           alt="Finance project cover"
-          className="object-cover w-full h-[100px] rounded-2xl shadow-md border border-gray-300 "
+          className="object-cover w-full h-full rounded-2xl shadow-md border border-gray-300 "
         />
       </div>
       <p className="text-[13px] text-[#3f5168] leading-relaxed">

@@ -9,9 +9,9 @@ const BioCard = () => (
       <h1>About Me</h1>
     </div>
     <p className="text-[14px] md:text-[15px] text-gray-800 leading-relaxed font-medium max-w-full mb-5">
-      Finance undergraduate focused on capital markets, portfolio analytics, and
-      valuation frameworks. I build decision-ready dashboards and research notes
-      with institutional clarity.
+      Finance undergraduate at North South University focused on capital
+      markets. I am building a foundation in quantitative analysis to bridge the
+      gap between academic theory and high-impact physical assets.
     </p>
     <ul className="grid gap-3.5 text-[13px] list-none p-0 m-0">
       <li className="flex justify-between gap-4 border-b border-[rgba(99,123,155,0.22)] pb-2.5 text-[#26364a]">

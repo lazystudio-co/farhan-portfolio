@@ -19,13 +19,10 @@ const HeroCard = () => (
         Equity Research
       </span>
       <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[0.74rem] tracking-[0.08em] text-[#34475f] bg-[#e4ecf4] border border-[rgba(94,122,152,0.25)]">
-        DCF & Comps
+        Corporate Finance
       </span>
       <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[0.74rem] tracking-[0.08em] text-[#34475f] bg-[#e4ecf4] border border-[rgba(94,122,152,0.25)]">
-        Power BI
-      </span>
-      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[0.74rem] tracking-[0.08em] text-[#34475f] bg-[#e4ecf4] border border-[rgba(94,122,152,0.25)]">
-        Excel Modeling
+        Fintech
       </span>
     </div>
   </div>

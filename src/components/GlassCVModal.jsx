@@ -1,62 +1,16 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
-import { gsap } from "gsap";
+import React, { useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
+import resumePdf from "../assets/resume.pdf";
+
+const CV_PDF_PATH = resumePdf;
 
 export default function GlassCVModal({ isOpen, onClose }) {
-  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
-  const isClosingRef = useRef(false);
-  const overlayRef = useRef(null);
-  const cardRef = useRef(null);
-
-  useLayoutEffect(() => {
-    if (!isOpen || isAnimatingOut || !overlayRef.current || !cardRef.current)
-      return;
-
-    gsap.set(overlayRef.current, { opacity: 0 });
-    gsap.set(cardRef.current, { opacity: 0, y: 24, scale: 0.97 });
-
-    const introTimeline = gsap.timeline({ defaults: { ease: "power3.out" } });
-    introTimeline
-      .to(overlayRef.current, { opacity: 1, duration: 0.28 })
-      .to(
-        cardRef.current,
-        { opacity: 1, y: 0, scale: 1, duration: 0.38 },
-        "-=0.16",
-      );
-
-    return () => {
-      introTimeline.kill();
-    };
-  }, [isOpen, isAnimatingOut]);
-
   const handleClose = useCallback(() => {
-    if (isClosingRef.current || !overlayRef.current || !cardRef.current) return;
-    isClosingRef.current = true;
-    setIsAnimatingOut(true);
-
-    const exitTimeline = gsap.timeline({
-      defaults: { ease: "power2.inOut" },
-      onComplete: () => {
-        isClosingRef.current = false;
-        setIsAnimatingOut(false);
-        onClose();
-      },
-    });
-
-    exitTimeline
-      .to(cardRef.current, { opacity: 0, y: 18, scale: 0.98, duration: 0.24 })
-      .to(overlayRef.current, { opacity: 0, duration: 0.2 }, "-=0.12");
+    onClose();
   }, [onClose]);
 
-  const shouldRender = isOpen || isAnimatingOut;
-
   useEffect(() => {
-    if (!shouldRender) return;
+    if (!isOpen) return;
 
     const previousBodyOverflow = document.body.style.overflow;
     const previousBodyTouchAction = document.body.style.touchAction;
@@ -72,18 +26,17 @@ export default function GlassCVModal({ isOpen, onClose }) {
       document.body.style.touchAction = previousBodyTouchAction;
       if (shell) shell.style.overflowY = previousShellOverflowY;
     };
-  }, [shouldRender]);
+  }, [isOpen]);
 
-  if (!shouldRender) return null;
+  if (!isOpen) return null;
 
-  return (
+  const modal = (
     <div
-      ref={overlayRef}
-      className="fixed inset-0 z-80 flex items-center justify-center p-4 bg-black/45 backdrop-blur-md"
+      className="fixed inset-0 flex items-center justify-center p-4 bg-black/45 backdrop-blur-md"
+      style={{ zIndex: 2147483647 }}
       onClick={handleClose}
     >
       <div
-        ref={cardRef}
         className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] custom-scrollbar"
         onClick={(event) => event.stopPropagation()}
       >
@@ -111,79 +64,28 @@ export default function GlassCVModal({ isOpen, onClose }) {
         </button>
 
         <div className="p-8 md:p-12">
-          {/* Header Profile Section */}
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b border-white/20 pb-8 mb-8">
-            {/* Profile Image Placeholder */}
-            <div className="w-32 h-32 rounded-full bg-linear-to-br from-purple-400 to-blue-500 p-1">
-              <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center border-2 border-white/20 overflow-hidden">
-                {/* Replace src with your actual image */}
-                <img
-                  src="https://ui-avatars.com/api/?name=John+Doe&background=random&color=fff&size=128"
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            <div className="text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide mb-1">
-                Jane Doe
-              </h1>
-              <p className="text-lg text-purple-300 font-medium mb-4">
-                Senior Frontend Developer
-              </p>
-              <p className="text-white/70 max-w-md leading-relaxed text-sm">
-                Passionate UI/UX engineer with 5+ years of experience building
-                scalable web applications. Obsessed with glassmorphism,
-                animations, and clean code.
-              </p>
-            </div>
-          </div>
-
-          {/* Experience Section */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <span className="w-8 h-px bg-purple-400"></span> Experience
+              <span className="w-8 h-px bg-purple-400"></span> Curriculum Vitae
             </h3>
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-white font-medium text-lg">
-                  Lead React Engineer
-                </h4>
-                <p className="text-purple-300 text-sm mb-2">
-                  TechCorp Inc. • 2021 - Present
-                </p>
-                <ul className="text-white/70 text-sm list-disc list-inside space-y-1">
-                  <li>
-                    Architected the core frontend using React and Tailwind CSS.
-                  </li>
-                  <li>
-                    Improved web vitals by 40% through code splitting and lazy
-                    loading.
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-white font-medium text-lg">
-                  Web Developer
-                </h4>
-                <p className="text-purple-300 text-sm mb-2">
-                  Creative Studio • 2018 - 2021
-                </p>
-                <ul className="text-white/70 text-sm list-disc list-inside space-y-1">
-                  <li>Designed and developed high-conversion landing pages.</li>
-                  <li>
-                    Implemented complex GSAP animations for client projects.
-                  </li>
-                </ul>
-              </div>
+            <div className="w-full h-[58vh] min-h-90 rounded-2xl overflow-hidden border border-white/20 bg-black/20">
+              <iframe
+                title="Curriculum Vitae"
+                src={CV_PDF_PATH}
+                className="w-full h-full"
+              />
             </div>
           </div>
 
           {/* Action Buttons (Download, LinkedIn, Insta) */}
           <div className="flex flex-col sm:flex-row items-center gap-4 pt-6 border-t border-white/20">
             {/* Download Button */}
-            <button className="flex items-center justify-center w-full sm:w-auto px-6 py-3 space-x-2 text-sm font-medium text-slate-900 bg-white hover:bg-gray-100 border border-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transition-all">
+            <a
+              href={CV_PDF_PATH}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center w-full sm:w-auto px-6 py-3 space-x-2 text-sm font-medium text-slate-900 bg-white hover:bg-gray-100 border border-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transition-all"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-5 h-5"
@@ -199,7 +101,7 @@ export default function GlassCVModal({ isOpen, onClose }) {
                 />
               </svg>
               <span>Download CV</span>
-            </button>
+            </a>
 
             <div className="flex space-x-4 w-full sm:w-auto justify-center">
               {/* LinkedIn Button */}
@@ -235,4 +137,6 @@ export default function GlassCVModal({ isOpen, onClose }) {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }

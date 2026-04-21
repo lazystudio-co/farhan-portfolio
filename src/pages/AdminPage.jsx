@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { onValue, ref, set } from "firebase/database";
 import { db } from "../firebase";
-import { DEFAULT_PORTFOLIO_CONTENT } from "../data/defaultPortfolioContent";
 
 const CONTENT_PATH = "portfolioContent";
 
@@ -9,34 +8,40 @@ const mergeContent = (remoteContent) => {
   const content = remoteContent || {};
 
   return {
-    ...DEFAULT_PORTFOLIO_CONTENT,
     ...content,
     hero: {
-      ...DEFAULT_PORTFOLIO_CONTENT.hero,
-      ...content.hero,
-      tags: Array.isArray(content.hero?.tags)
-        ? content.hero.tags
-        : DEFAULT_PORTFOLIO_CONTENT.hero.tags,
+      ...(content.hero || {}),
+      tags: Array.isArray(content.hero?.tags) ? content.hero.tags : [],
+      titleStart: content.hero?.titleStart || "",
+      titleEmphasis: content.hero?.titleEmphasis || "",
+      titleEnd: content.hero?.titleEnd || "",
     },
     profile: {
-      ...DEFAULT_PORTFOLIO_CONTENT.profile,
-      ...content.profile,
+      ...(content.profile || {}),
+      profileUrl: content.profile?.profileUrl || "",
+      targetRole: content.profile?.targetRole || "",
     },
     aboutSection: {
-      ...DEFAULT_PORTFOLIO_CONTENT.aboutSection,
-      ...content.aboutSection,
+      ...(content.aboutSection || {}),
+      aboutMe: content.aboutSection?.aboutMe || "",
+      cgpa: content.aboutSection?.cgpa || "",
+      education: content.aboutSection?.education || "",
+      sectorFocus: content.aboutSection?.sectorFocus || "",
     },
     contact: {
-      ...DEFAULT_PORTFOLIO_CONTENT.contact,
-      ...content.contact,
+      ...(content.contact || {}),
+      availabilityLabel: content.contact?.availabilityLabel || "",
+      availabilityValue: content.contact?.availabilityValue || "",
+      heading: content.contact?.heading || "",
+      description: content.contact?.description || "",
     },
     portrait: {
-      ...DEFAULT_PORTFOLIO_CONTENT.portrait,
-      ...content.portrait,
+      ...(content.portrait || {}),
+      imageUrl: content.portrait?.imageUrl || "",
     },
     footer: {
-      ...DEFAULT_PORTFOLIO_CONTENT.footer,
-      ...content.footer,
+      ...(content.footer || {}),
+      brandName: content.footer?.brandName || "",
     },
     projects: Array.isArray(content.projects)
       ? content.projects.map((project, index) => ({
@@ -45,7 +50,7 @@ const mergeContent = (remoteContent) => {
           description: project.description || "",
           imageUrl: project.imageUrl || "",
         }))
-      : DEFAULT_PORTFOLIO_CONTENT.projects,
+      : [],
   };
 };
 
@@ -65,7 +70,7 @@ const InputField = ({ label, value, onChange, placeholder, type = "text" }) => (
 );
 
 const AdminPage = () => {
-  const [form, setForm] = useState(DEFAULT_PORTFOLIO_CONTENT);
+  const [form, setForm] = useState({});
   const [saveState, setSaveState] = useState("idle");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -79,7 +84,7 @@ const AdminPage = () => {
         setIsLoading(false);
       },
       () => {
-        setForm(DEFAULT_PORTFOLIO_CONTENT);
+        setForm({});
         setIsLoading(false);
       },
     );
@@ -88,8 +93,8 @@ const AdminPage = () => {
   }, []);
 
   const heroTagsValue = useMemo(
-    () => form.hero.tags.join(", "),
-    [form.hero.tags],
+    () => (form.hero?.tags ? form.hero.tags.join(", ") : ""),
+    [form.hero],
   );
 
   const updateHero = (field, value) => {
@@ -176,16 +181,25 @@ const AdminPage = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="portfolio-backdrop">
-        <div className="portfolio-shell flex items-center justify-center p-6">
-          <div className="rounded-2xl border border-white/50 bg-white/80 px-6 py-4 text-[#12233a]">
-            Loading dashboard content...
-          </div>
+  // Simple skeleton loader component
+  const Skeleton = () => (
+    <div className="portfolio-backdrop">
+      <div className="portfolio-shell flex items-center justify-center p-6">
+        <div className="w-full max-w-375 rounded-4xl border border-white/45 bg-white/80 px-6 py-8 shadow-[0_25px_80px_rgba(10,20,34,0.08)] animate-pulse">
+          <div className="h-6 w-1/3 bg-gray-200 rounded mb-4" />
+          <div className="h-10 w-2/3 bg-gray-200 rounded mb-6" />
+          <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
+          <div className="h-4 w-1/4 bg-gray-200 rounded mb-6" />
+          <div className="h-12 w-full bg-gray-200 rounded mb-4" />
+          <div className="h-12 w-full bg-gray-200 rounded mb-4" />
+          <div className="h-12 w-full bg-gray-200 rounded" />
         </div>
       </div>
-    );
+    </div>
+  );
+
+  if (isLoading) {
+    return <Skeleton />;
   }
 
   return (
@@ -238,7 +252,7 @@ const AdminPage = () => {
                 <div className="mt-4 space-y-4">
                   <InputField
                     label="Hero Title Start"
-                    value={form.hero.titleStart}
+                    value={form.hero?.titleStart || ""}
                     onChange={(event) =>
                       updateHero("titleStart", event.target.value)
                     }
@@ -246,7 +260,7 @@ const AdminPage = () => {
                   />
                   <InputField
                     label="Hero Title Emphasis"
-                    value={form.hero.titleEmphasis}
+                    value={form.hero?.titleEmphasis || ""}
                     onChange={(event) =>
                       updateHero("titleEmphasis", event.target.value)
                     }
@@ -254,7 +268,7 @@ const AdminPage = () => {
                   />
                   <InputField
                     label="Hero Title End"
-                    value={form.hero.titleEnd}
+                    value={form.hero?.titleEnd || ""}
                     onChange={(event) =>
                       updateHero("titleEnd", event.target.value)
                     }
@@ -284,7 +298,7 @@ const AdminPage = () => {
                 <div className="mt-4 space-y-4">
                   <InputField
                     label="Profile URL"
-                    value={form.profile.profileUrl}
+                    value={form.profile?.profileUrl || ""}
                     onChange={(event) =>
                       updateProfile("profileUrl", event.target.value)
                     }
@@ -292,7 +306,7 @@ const AdminPage = () => {
                   />
                   <InputField
                     label="Target Role"
-                    value={form.profile.targetRole}
+                    value={form.profile?.targetRole || ""}
                     onChange={(event) =>
                       updateProfile("targetRole", event.target.value)
                     }
@@ -311,7 +325,7 @@ const AdminPage = () => {
                       About Me
                     </span>
                     <textarea
-                      value={form.aboutSection.aboutMe}
+                      value={form.aboutSection?.aboutMe || ""}
                       onChange={(event) =>
                         updateAbout("aboutMe", event.target.value)
                       }
@@ -322,7 +336,7 @@ const AdminPage = () => {
                   <div className="grid gap-4 md:grid-cols-2">
                     <InputField
                       label="CGPA"
-                      value={form.aboutSection.cgpa}
+                      value={form.aboutSection?.cgpa || ""}
                       onChange={(event) =>
                         updateAbout("cgpa", event.target.value)
                       }
@@ -330,7 +344,7 @@ const AdminPage = () => {
                     />
                     <InputField
                       label="Sector Focus"
-                      value={form.aboutSection.sectorFocus}
+                      value={form.aboutSection?.sectorFocus || ""}
                       onChange={(event) =>
                         updateAbout("sectorFocus", event.target.value)
                       }
@@ -339,7 +353,7 @@ const AdminPage = () => {
                   </div>
                   <InputField
                     label="Education"
-                    value={form.aboutSection.education}
+                    value={form.aboutSection?.education || ""}
                     onChange={(event) =>
                       updateAbout("education", event.target.value)
                     }
@@ -357,7 +371,7 @@ const AdminPage = () => {
                 <div className="mt-4 space-y-4">
                   <InputField
                     label="Availability Label"
-                    value={form.contact.availabilityLabel}
+                    value={form.contact?.availabilityLabel || ""}
                     onChange={(event) =>
                       updateContact("availabilityLabel", event.target.value)
                     }
@@ -365,7 +379,7 @@ const AdminPage = () => {
                   />
                   <InputField
                     label="Availability Value"
-                    value={form.contact.availabilityValue}
+                    value={form.contact?.availabilityValue || ""}
                     onChange={(event) =>
                       updateContact("availabilityValue", event.target.value)
                     }
@@ -373,7 +387,7 @@ const AdminPage = () => {
                   />
                   <InputField
                     label="Heading"
-                    value={form.contact.heading}
+                    value={form.contact?.heading || ""}
                     onChange={(event) =>
                       updateContact("heading", event.target.value)
                     }
@@ -384,7 +398,7 @@ const AdminPage = () => {
                       Description
                     </span>
                     <textarea
-                      value={form.contact.description}
+                      value={form.contact?.description || ""}
                       onChange={(event) =>
                         updateContact("description", event.target.value)
                       }
@@ -410,7 +424,7 @@ const AdminPage = () => {
                 </div>
 
                 <div className="mt-4 space-y-4">
-                  {form.projects.map((project, index) => (
+                  {(form.projects || []).map((project, index) => (
                     <article
                       key={project.id}
                       className="rounded-2xl border border-[#d8dee8] bg-[#fbfcfe] p-4"
@@ -483,13 +497,13 @@ const AdminPage = () => {
                 <div className="mt-4 space-y-4">
                   <InputField
                     label="Portrait Image URL"
-                    value={form.portrait.imageUrl}
+                    value={form.portrait?.imageUrl || ""}
                     onChange={(event) => updatePortrait(event.target.value)}
                     placeholder="https://..."
                   />
                   <InputField
                     label="Footer Brand Name"
-                    value={form.footer.brandName}
+                    value={form.footer?.brandName || ""}
                     onChange={(event) => updateFooter(event.target.value)}
                     placeholder="LazyStudio"
                   />

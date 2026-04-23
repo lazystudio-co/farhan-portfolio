@@ -3,6 +3,12 @@ import { onValue, ref, set } from "firebase/database";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { db, auth } from "../firebase";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
+import toast from "react-hot-toast";
+import { 
+  Home, User, Info, MessageSquare, Briefcase, 
+  Image as ImageIcon, Save, LogOut, Plus, Trash2, FolderOpen, GripVertical 
+} from "lucide-react";
 
 const CONTENT_PATH = "portfolioContent";
 
@@ -66,13 +72,33 @@ const InputField = ({ label, value, onChange, placeholder, type = "text" }) => (
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
+      className="rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition hover:border-[#b4beca] focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
     />
   </label>
 );
 
+const ImagePreview = ({ url }) => {
+  if (!url || !url.startsWith("http")) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      className="mt-2 overflow-hidden rounded-xl border border-[#d8dee8] bg-[#fbfcfe]"
+    >
+      <img 
+        src={url} 
+        alt="Preview" 
+        className="h-32 w-full object-cover transition-opacity duration-300"
+        onError={(e) => { e.target.style.display = 'none'; }}
+      />
+    </motion.div>
+  );
+};
+
 const AdminPage = () => {
   const [form, setForm] = useState({});
+  const [initialForm, setInitialForm] = useState(null);
   const [saveState, setSaveState] = useState("idle");
   const [isLoading, setIsLoading] = useState(true);
   const [authStatus, setAuthStatus] = useState("loading");
@@ -100,7 +126,9 @@ const AdminPage = () => {
     const unsubscribe = onValue(
       contentRef,
       (snapshot) => {
-        setForm(mergeContent(snapshot.val()));
+        const merged = mergeContent(snapshot.val());
+        setForm(merged);
+        setInitialForm(merged);
         setIsLoading(false);
       },
       () => {
@@ -114,6 +142,22 @@ const AdminPage = () => {
       unsubscribeAuth();
     };
   }, [navigate]);
+
+  const isDirty = useMemo(() => {
+    if (!initialForm) return false;
+    return JSON.stringify(form) !== JSON.stringify(initialForm);
+  }, [form, initialForm]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   const heroTagsValue = useMemo(
     () => (form.hero?.tags ? form.hero.tags.join(", ") : ""),
@@ -171,6 +215,13 @@ const AdminPage = () => {
     }));
   };
 
+  const handleReorderProjects = (reorderedProjects) => {
+    setForm((prev) => ({
+      ...prev,
+      projects: reorderedProjects,
+    }));
+  };
+
   const addProject = () => {
     setForm((prev) => ({
       ...prev,
@@ -199,8 +250,10 @@ const AdminPage = () => {
     try {
       await set(ref(db, CONTENT_PATH), form);
       setSaveState("saved");
+      toast.success("Successfully saved to Firebase!");
     } catch {
       setSaveState("error");
+      toast.error("Save failed. Check Firebase rules.");
     }
   };
 
@@ -214,18 +267,35 @@ const AdminPage = () => {
     }
   };
 
-  // Simple skeleton loader component
   const Skeleton = () => (
     <div className="portfolio-backdrop">
-      <div className="portfolio-shell flex items-center justify-center p-6">
-        <div className="w-full max-w-375 rounded-4xl border border-white/45 bg-white/80 px-6 py-8 shadow-[0_25px_80px_rgba(10,20,34,0.08)] animate-pulse">
-          <div className="h-6 w-1/3 bg-gray-200 rounded mb-4" />
-          <div className="h-10 w-2/3 bg-gray-200 rounded mb-6" />
-          <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
-          <div className="h-4 w-1/4 bg-gray-200 rounded mb-6" />
-          <div className="h-12 w-full bg-gray-200 rounded mb-4" />
-          <div className="h-12 w-full bg-gray-200 rounded mb-4" />
-          <div className="h-12 w-full bg-gray-200 rounded" />
+      <div className="portfolio-shell p-4 md:p-8 font-['Manrope']">
+        <div className="mx-auto w-full max-w-[1500px] rounded-4xl border border-white/45 bg-white/40 shadow-[0_25px_80px_rgba(10,20,34,0.05)] backdrop-blur-md overflow-hidden animate-pulse">
+          {/* Header */}
+          <div className="px-5 py-5 md:px-9 md:py-7 border-b border-white/40 flex justify-between items-center">
+            <div className="h-8 w-48 bg-white/80 rounded-xl" />
+            <div className="hidden md:flex gap-3">
+              <div className="h-10 w-28 bg-white/80 rounded-xl" />
+              <div className="h-10 w-36 bg-[#0f766e]/30 rounded-xl" />
+            </div>
+          </div>
+          
+          {/* Main Grid */}
+          <div className="grid gap-5 p-5 md:grid-cols-[1.1fr_0.9fr] md:gap-7 md:px-9 md:py-7">
+            {/* Left Column */}
+            <div className="space-y-5">
+              <div className="h-[280px] bg-white/80 rounded-3xl border border-white/40" />
+              <div className="h-[250px] bg-white/80 rounded-3xl border border-white/40" />
+              <div className="h-[320px] bg-white/80 rounded-3xl border border-white/40" />
+            </div>
+            
+            {/* Right Column */}
+            <div className="space-y-5">
+              <div className="h-[240px] bg-white/80 rounded-3xl border border-white/40" />
+              <div className="h-[480px] bg-white/80 rounded-3xl border border-white/40" />
+              <div className="h-[200px] bg-white/80 rounded-3xl border border-white/40" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -249,7 +319,12 @@ const AdminPage = () => {
 
   return (
     <div className="portfolio-backdrop">
-      <div className="portfolio-shell p-4 md:p-8 font-['Manrope']">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="portfolio-shell p-4 md:p-8 font-['Manrope']"
+      >
         <div className="mx-auto w-full max-w-375 rounded-4xl border border-white/45 bg-[linear-gradient(148deg,rgba(255,255,255,0.9),rgba(247,249,252,0.82))] shadow-[0_25px_80px_rgba(10,20,34,0.2)] backdrop-blur-md">
           <header className="border-b border-[#d8dee8] px-5 py-5 md:px-9 md:py-7">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
@@ -270,27 +345,22 @@ const AdminPage = () => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-xl border border-[#d8dee8] bg-white px-5 py-2.5 text-sm font-semibold text-[#415471] transition hover:bg-[#f8fafc]"
+                  className="flex items-center gap-2 rounded-xl border border-[#d8dee8] bg-white px-5 py-2.5 text-sm font-semibold text-[#415471] transition hover:bg-[#f8fafc]"
                 >
-                  Log Out
+                  <LogOut size={16} /> Log Out
                 </button>
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="rounded-xl bg-[#0f766e] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(15,118,110,0.35)] transition hover:brightness-110"
+                  disabled={!isDirty || saveState === "saving"}
+                  className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition ${
+                    !isDirty
+                      ? "bg-[#0f766e]/50 cursor-not-allowed"
+                      : "bg-[#0f766e] shadow-[0_10px_24px_rgba(15,118,110,0.35)] hover:brightness-110"
+                  }`}
                 >
-                  {saveState === "saving" ? "Saving..." : "Save Changes"}
+                  <Save size={16} /> {saveState === "saving" ? "Saving..." : "Save Changes"}
                 </button>
-                {saveState === "saved" ? (
-                  <span className="text-xs font-semibold text-[#0f766e]">
-                    Saved to Firebase
-                  </span>
-                ) : null}
-                {saveState === "error" ? (
-                  <span className="text-xs font-semibold text-[#b91c1c]">
-                    Save failed. Check Firebase rules.
-                  </span>
-                ) : null}
               </div>
             </div>
           </header>
@@ -298,8 +368,8 @@ const AdminPage = () => {
           <main className="grid gap-5 p-5 md:grid-cols-[1.1fr_0.9fr] md:gap-7 md:px-9 md:py-7">
             <div className="space-y-5">
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
-                <h2 className="text-lg font-semibold text-[#12233a]">
-                  Hero Content
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-[#12233a]">
+                  <Home size={20} className="text-[#0f766e]" /> Hero Content
                 </h2>
                 <div className="mt-4 space-y-4">
                   <InputField
@@ -344,8 +414,8 @@ const AdminPage = () => {
               </section>
 
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
-                <h2 className="text-lg font-semibold text-[#12233a]">
-                  Profile Overview
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-[#12233a]">
+                  <User size={20} className="text-[#0f766e]" /> Profile Overview
                 </h2>
                 <div className="mt-4 space-y-4">
                   <InputField
@@ -368,8 +438,8 @@ const AdminPage = () => {
               </section>
 
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
-                <h2 className="text-lg font-semibold text-[#12233a]">
-                  About Content
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-[#12233a]">
+                  <Info size={20} className="text-[#0f766e]" /> About Content
                 </h2>
                 <div className="mt-4 space-y-4">
                   <label className="flex flex-col gap-2">
@@ -382,7 +452,7 @@ const AdminPage = () => {
                         updateAbout("aboutMe", event.target.value)
                       }
                       rows={5}
-                      className="w-full rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
+                      className="w-full rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition hover:border-[#b4beca] focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
                     />
                   </label>
                   <div className="grid gap-4 md:grid-cols-2">
@@ -417,8 +487,8 @@ const AdminPage = () => {
 
             <aside className="space-y-5">
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
-                <h2 className="text-lg font-semibold text-[#12233a]">
-                  Let&apos;s Connect Card
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-[#12233a]">
+                  <MessageSquare size={20} className="text-[#0f766e]" /> Let&apos;s Connect Card
                 </h2>
                 <div className="mt-4 space-y-4">
                   <InputField
@@ -455,96 +525,130 @@ const AdminPage = () => {
                         updateContact("description", event.target.value)
                       }
                       rows={3}
-                      className="rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
+                      className="rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition hover:border-[#b4beca] focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
                     />
                   </label>
                 </div>
               </section>
 
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
-                <h2 className="text-lg font-semibold text-[#12233a]">
-                  Projects Manager
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-[#12233a]">
+                  <Briefcase size={20} className="text-[#0f766e]" /> Projects Manager
                 </h2>
                 <div className="mt-3 flex justify-end">
                   <button
                     type="button"
                     onClick={addProject}
-                    className="rounded-xl border border-[#cbd5e1] px-3 py-2 text-xs font-semibold uppercase tracking-[0.13em] text-[#0f172a] transition hover:bg-[#f2f6fb]"
+                    className="flex items-center gap-1.5 rounded-xl border border-[#cbd5e1] px-3 py-2 text-xs font-semibold uppercase tracking-[0.13em] text-[#0f172a] transition hover:bg-[#f2f6fb]"
                   >
-                    Add Project
+                    <Plus size={14} /> Add Project
                   </button>
                 </div>
 
-                <div className="mt-4 space-y-4">
-                  {(form.projects || []).map((project, index) => (
-                    <article
-                      key={project.id}
-                      className="rounded-2xl border border-[#d8dee8] bg-[#fbfcfe] p-4"
-                    >
-                      <div className="mb-3 flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#75849a]">
-                          Project {index + 1}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeProject(project.id)}
-                          className="text-xs font-semibold uppercase tracking-[0.12em] text-[#b91c1c] hover:opacity-70"
-                        >
-                          Remove
-                        </button>
-                      </div>
+                <div className="mt-4">
+                  <AnimatePresence>
+                    {(form.projects || []).length === 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#d8dee8] p-10"
+                      >
+                        <FolderOpen size={40} className="text-[#a3b1c6] mb-3" />
+                        <span className="text-sm font-semibold text-[#415471]">No Projects Found</span>
+                        <span className="text-xs text-[#75849a] mt-1">Click "Add Project" to add your first one.</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                      <div className="space-y-3">
-                        <InputField
-                          label="Title"
-                          value={project.title}
-                          onChange={(event) =>
-                            updateProject(
-                              project.id,
-                              "title",
-                              event.target.value,
-                            )
-                          }
-                          placeholder="Project title"
-                        />
-                        <label className="flex flex-col gap-2">
-                          <span className="text-[11px] uppercase tracking-[0.2em] text-[#7a879b] font-semibold">
-                            Description
-                          </span>
-                          <textarea
-                            value={project.description}
+                  <Reorder.Group 
+                    axis="y" 
+                    values={form.projects || []} 
+                    onReorder={handleReorderProjects}
+                    className="space-y-4"
+                  >
+                    <AnimatePresence>
+                      {(form.projects || []).map((project, index) => (
+                        <Reorder.Item
+                          key={project.id}
+                          value={project}
+                          initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                          animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
+                          exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: "hidden" }}
+                          transition={{ duration: 0.3 }}
+                          className="rounded-2xl border border-[#d8dee8] bg-[#fbfcfe] p-4 relative"
+                        >
+                          <div className="mb-3 flex items-center justify-between">
+                            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#75849a]">
+                              <GripVertical size={16} className="cursor-grab active:cursor-grabbing text-[#a3b1c6] hover:text-[#0f766e] transition-colors" />
+                              Project {index + 1}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeProject(project.id)}
+                              className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#b91c1c] hover:opacity-70"
+                            >
+                              <Trash2 size={14} /> Remove
+                            </button>
+                          </div>
+
+                        <div className="space-y-3">
+                          <InputField
+                            label="Title"
+                            value={project.title}
                             onChange={(event) =>
                               updateProject(
                                 project.id,
-                                "description",
+                                "title",
                                 event.target.value,
                               )
                             }
-                            rows={3}
-                            className="rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
+                            placeholder="Project title"
                           />
-                        </label>
-                        <InputField
-                          label="Image URL (optional)"
-                          value={project.imageUrl}
-                          onChange={(event) =>
-                            updateProject(
-                              project.id,
-                              "imageUrl",
-                              event.target.value,
-                            )
-                          }
-                          placeholder="https://..."
-                        />
-                      </div>
-                    </article>
-                  ))}
+                          <label className="flex flex-col gap-2">
+                            <span className="text-[11px] uppercase tracking-[0.2em] text-[#7a879b] font-semibold">
+                              Description
+                            </span>
+                            <textarea
+                              value={project.description}
+                              onChange={(event) =>
+                                updateProject(
+                                  project.id,
+                                  "description",
+                                  event.target.value,
+                                )
+                              }
+                              rows={3}
+                              className="rounded-2xl border border-[#d8dde5] bg-white px-4 py-3 text-sm text-[#1f2a3d] outline-none transition hover:border-[#b4beca] focus:border-[#0f766e] focus:ring-4 focus:ring-[#0f766e]/15"
+                            />
+                          </label>
+                          <InputField
+                            label="Image URL (optional)"
+                            value={project.imageUrl}
+                            onChange={(event) =>
+                              updateProject(
+                                project.id,
+                                "imageUrl",
+                                event.target.value,
+                              )
+                            }
+                            placeholder="https://..."
+                          />
+                          <AnimatePresence>
+                            <ImagePreview url={project.imageUrl} key={project.imageUrl} />
+                          </AnimatePresence>
+                        </div>
+                        </Reorder.Item>
+                      ))}
+                    </AnimatePresence>
+                  </Reorder.Group>
                 </div>
               </section>
 
               <section className="rounded-3xl border border-[#d7dfe9] bg-white p-5">
-                <h2 className="text-lg font-semibold text-[#12233a]">
-                  Portrait & Footer
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-[#12233a]">
+                  <ImageIcon size={20} className="text-[#0f766e]" /> Portrait & Footer
                 </h2>
                 <div className="mt-4 space-y-4">
                   <InputField
@@ -553,6 +657,9 @@ const AdminPage = () => {
                     onChange={(event) => updatePortrait(event.target.value)}
                     placeholder="https://..."
                   />
+                  <AnimatePresence>
+                    <ImagePreview url={form.portrait?.imageUrl} key={form.portrait?.imageUrl} />
+                  </AnimatePresence>
                   <InputField
                     label="Footer Brand Name"
                     value={form.footer?.brandName || ""}
@@ -564,7 +671,7 @@ const AdminPage = () => {
             </aside>
           </main>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Lock, ArrowLeft } from "lucide-react";
 import { auth } from "../firebase";
 
 const Auth = () => {
@@ -34,7 +36,23 @@ const Auth = () => {
 
   return (
     <section className="flex items-center justify-center min-h-screen">
-      <div className="w-125 min-h-50 p-8 bg-white/30 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="relative w-125 min-h-50 p-8 bg-white/30 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50"
+      >
+        <button 
+          onClick={() => navigate("/")}
+          className="absolute top-6 left-6 p-2 rounded-full hover:bg-white/40 border border-transparent hover:border-white/50 transition-all text-gray-800 cursor-pointer shadow-sm hover:shadow-md"
+          title="Return to Portfolio"
+        >
+          <ArrowLeft size={20} strokeWidth={2} />
+        </button>
+
+        <div className="flex justify-center mb-4">
+          <Lock size={48} className="text-gray-800" strokeWidth={1.5} />
+        </div>
         <h1 className="text-2xl font-semibold text-center text-gray-800 mb-6">
           Admin Login
         </h1>
@@ -71,7 +89,7 @@ const Auth = () => {
             Sign In
           </button>
         </form>
-      </div>
+      </motion.div>
     </section>
   );
 };

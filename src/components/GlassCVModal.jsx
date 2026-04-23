@@ -106,7 +106,7 @@ export default function GlassCVModal({ isOpen, onClose }) {
             <div className="flex space-x-4 w-full sm:w-auto justify-center">
               {/* LinkedIn Button */}
               <a
-                href="#"
+                href="https://www.linkedin.com/in/farhanirtiza/"
                 className="flex items-center justify-center p-3 text-white bg-white/10 hover:bg-[#0077b5] border border-white/20 hover:border-transparent rounded-xl transition-all group"
               >
                 <svg
@@ -120,7 +120,7 @@ export default function GlassCVModal({ isOpen, onClose }) {
 
               {/* Instagram Button */}
               <a
-                href="#"
+                href="https://www.instagram.com/irtiza_farhan.exe/"
                 className="flex items-center justify-center p-3 text-white bg-white/10 hover:bg-linear-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] border border-white/20 hover:border-transparent rounded-xl transition-all group"
               >
                 <svg

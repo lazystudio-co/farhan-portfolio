@@ -35,16 +35,16 @@ const Auth = () => {
   };
 
   return (
-    <section className="flex items-center justify-center min-h-screen">
+    <section className="flex items-center justify-center min-h-screen p-4">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative w-125 min-h-50 p-8 bg-white/30 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50"
+        className="relative w-full max-w-[500px] min-h-50 p-6 md:p-8 bg-white/30 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50"
       >
         <button 
           onClick={() => navigate("/")}
-          className="absolute top-6 left-6 p-2 rounded-full hover:bg-white/40 border border-transparent hover:border-white/50 transition-all text-gray-800 cursor-pointer shadow-sm hover:shadow-md"
+          className="absolute top-4 left-4 md:top-6 md:left-6 p-2 rounded-full hover:bg-white/40 border border-transparent hover:border-white/50 transition-all text-gray-800 cursor-pointer shadow-sm hover:shadow-md z-10"
           title="Return to Portfolio"
         >
           <ArrowLeft size={20} strokeWidth={2} />

@@ -17,18 +17,12 @@ const Header = () => {
           </a>
         </div>
         <nav className="hidden md:flex gap-10 text-[11px] font-semibold tracking-[0.2em] text-[#333] mt-5">
-          <a href="#casework" className="transition-colors hover:text-black">
-            CASEWORK
-          </a>
-          <a href="#insights" className="transition-colors hover:text-black">
-            INSIGHTS
-          </a>
           <button
             type="button"
             onClick={() => setIsContactOpen(true)}
             className="transition-colors hover:text-black cursor-pointer"
           >
-            CONNECT
+            Contact
           </button>
         </nav>
       </header>

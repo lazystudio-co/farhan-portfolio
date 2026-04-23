@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { onValue, ref, set } from "firebase/database";
-import { db } from "../firebase";
+import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { db, auth } from "../firebase";
 
 const CONTENT_PATH = "portfolioContent";
 
@@ -73,8 +75,26 @@ const AdminPage = () => {
   const [form, setForm] = useState({});
   const [saveState, setSaveState] = useState("idle");
   const [isLoading, setIsLoading] = useState(true);
+  const [authStatus, setAuthStatus] = useState("loading");
+  const isLoggingOutRef = React.useRef(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        if (isLoggingOutRef.current) {
+          navigate("/admin");
+        } else {
+          setAuthStatus("illegal");
+          setTimeout(() => {
+            navigate("/admin");
+          }, 3000);
+        }
+      } else {
+        setAuthStatus("authenticated");
+      }
+    });
+
     const contentRef = ref(db, CONTENT_PATH);
 
     const unsubscribe = onValue(
@@ -89,8 +109,11 @@ const AdminPage = () => {
       },
     );
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      unsubscribe();
+      unsubscribeAuth();
+    };
+  }, [navigate]);
 
   const heroTagsValue = useMemo(
     () => (form.hero?.tags ? form.hero.tags.join(", ") : ""),
@@ -181,6 +204,16 @@ const AdminPage = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      isLoggingOutRef.current = true;
+      await signOut(auth);
+      navigate("/admin");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   // Simple skeleton loader component
   const Skeleton = () => (
     <div className="portfolio-backdrop">
@@ -198,7 +231,19 @@ const AdminPage = () => {
     </div>
   );
 
-  if (isLoading) {
+  if (authStatus === "illegal") {
+    return (
+      <div className="portfolio-backdrop flex h-screen items-center justify-center">
+        <div className="rounded-2xl border border-red-200 bg-white/90 p-10 text-center shadow-[0_25px_80px_rgba(10,20,34,0.15)] backdrop-blur-md">
+          <h1 className="mb-4 text-4xl font-bold text-red-600">Illegal Login</h1>
+          <p className="text-lg text-gray-700">You do not have permission to view this page.</p>
+          <p className="mt-4 text-sm font-semibold text-gray-500 animate-pulse">Redirecting to login page...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || authStatus === "loading") {
     return <Skeleton />;
   }
 
@@ -222,6 +267,13 @@ const AdminPage = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-xl border border-[#d8dee8] bg-white px-5 py-2.5 text-sm font-semibold text-[#415471] transition hover:bg-[#f8fafc]"
+                >
+                  Log Out
+                </button>
                 <button
                   type="button"
                   onClick={handleSave}

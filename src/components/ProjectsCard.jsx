@@ -84,7 +84,7 @@ const ProjectsCard = ({ projects = [] }) => {
                   <img
                     src={project.imageUrl}
                     alt={`${project.title} cover`}
-                    className="object-cover w-full h-full grayscale-100 transition-transform duration-700 group-hover:scale-105 group-hover:grayscale-0 "
+                    className="object-cover w-full h-full grayscale-100 group-hover:scale-105 group-hover:grayscale-0 duration-300 ease-in-out "
                   />
                 </div>
               ) : null}

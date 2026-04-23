@@ -20,7 +20,7 @@ const Header = () => {
           <button
             type="button"
             onClick={() => setIsContactOpen(true)}
-            className=" text-[18px] font-semibold transition-colors hover:text-black cursor-pointer"
+            className=" text-[16px] font-semibold transition-colors hover:text-black cursor-pointer"
           >
             Contact
           </button>
